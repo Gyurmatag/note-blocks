@@ -1,13 +1,19 @@
 "use client";
 
-import { BlockNoteEditor } from "@blocknote/core";
-import { BlockNoteView, getDefaultReactSlashMenuItems, ReactSlashMenuItem, useBlockNote } from "@blocknote/react";
+import { BlockNoteEditor, filterSuggestionItems } from "@blocknote/core";
+import {
+  BlockNoteView,
+  DefaultReactSuggestionItem,
+  getDefaultReactSlashMenuItems, SuggestionMenuController,
+  useCreateBlockNote
+} from "@blocknote/react";
 import "@blocknote/core/style.css";
 import { ImMagicWand } from "react-icons/im";
 import { useCompletion } from "ai/react";
-import { Editor } from '@tiptap/core';
 import { createNote } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import '@blocknote/core/fonts/inter.css';
+import '@blocknote/react/style.css';
 
 export default function TextEditor() {
   const { complete } = useCompletion({
@@ -41,71 +47,70 @@ export default function TextEditor() {
     },
   });
 
-  const getPrevText = (
-    editor: Editor,
-    {
-      chars,
-      offset = 0,
-    }: {
-      chars: number;
-      offset?: number;
-    }
-  ) => {
-    return editor.state.doc.textBetween(
-      Math.max(0, editor.state.selection.from - chars),
-      editor.state.selection.from - offset,
-      '\n'
-    );
-  };
-
   const insertMagicAi = (editor: BlockNoteEditor) => {
-    complete(
-      getPrevText(editor._tiptapEditor, {
-        chars: 5000,
-        offset: 1,
-      })
+    const prevText = editor._tiptapEditor.state.doc.textBetween(
+        Math.max(0, editor._tiptapEditor.state.selection.from - 5000),
+        editor._tiptapEditor.state.selection.from - 1,
+        '\n'
     );
+    complete(prevText);
   };
 
-  const insertMagicItem: ReactSlashMenuItem = {
-    name: 'Continue with AI',
-    execute: insertMagicAi,
-    aliases: ['ai', 'magic'],
-    group: 'Magic',
+  const insertMagicItem = (editor: BlockNoteEditor) => ({
+    title: 'Insert Magic Text',
+    onItemClick: async () => {
+      const prevText = editor._tiptapEditor.state.doc.textBetween(
+          Math.max(0, editor._tiptapEditor.state.selection.from - 5000),
+          editor._tiptapEditor.state.selection.from - 1,
+          '\n'
+      );
+      insertMagicAi(editor);
+    },
+    aliases: ['autocomplete', 'ai'],
+    group: 'AI',
     icon: <ImMagicWand size={18} />,
-    hint: 'Continue your idea with some extra inspiration!',
-  };
+    subtext: 'Continue your note with AI-generated text',
+  });
 
-  const customSlashMenuItemList = [
-    insertMagicItem,
-    ...getDefaultReactSlashMenuItems(),
+  const getCustomSlashMenuItems = (
+      editor: BlockNoteEditor
+  ): DefaultReactSuggestionItem[] => [
+    ...getDefaultReactSlashMenuItems(editor),
+    insertMagicItem(editor),
   ];
 
-  const editor: BlockNoteEditor | null = useBlockNote({
-    slashMenuItems: customSlashMenuItemList,
+  const editor = useCreateBlockNote({
   });
 
   const handleSubmitNote = async () => {
     const note = {
-      document: editor.topLevelBlocks
+      document: editor.document
     }
     await createNote(note)
   }
 
   return (
     <div className="flex flex-col items-center min-h-screen px-4 w-full">
-      <div className="relative w-full max-w-4xl mx-auto mb-4">
-        <Button
-          className="absolute right-0 top-0 mt-4 mr-4 px-4 py-2"
-          onClick={() => handleSubmitNote()}
-        >
-          Submit
-        </Button>
+      <div className="w-full max-w-4xl mx-auto m-5">
         <BlockNoteView
-          className="w-full bg-white p-4 pt-16"
-          editor={editor}
-          theme={"light"}
-        />
+            editor={editor}
+            slashMenu={false}
+        >
+          <SuggestionMenuController
+              triggerCharacter={'/'}
+              getItems={async (query) =>
+                  filterSuggestionItems(getCustomSlashMenuItems(editor), query)
+              }
+          />
+        </BlockNoteView>
+        <div className="flex justify-end">
+            <Button
+                className="mt-4 mr-4 px-4 py-2"
+                onClick={() => handleSubmitNote()}
+            >
+                Submit
+            </Button>
+        </div>
       </div>
     </div>
   );

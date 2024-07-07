@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@blocknote/core": "^0.10.1",
-    "@blocknote/react": "^0.10.1",
+    "@blocknote/core": "^0.12.4",
+    "@blocknote/react": "^0.12.4",
     "@prisma/client": "^5.7.1",
     "@radix-ui/react-slot": "^1.0.2",
     "@upstash/ratelimit": "^1.0.0",
