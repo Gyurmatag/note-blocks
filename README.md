@@ -1,15 +1,22 @@
 ## Note Blocks
 
-First, run the development server:
+If you clone this repo you should run a:
+
+```bash
+npm install
+```
+
+After that you must create a `.env` file in the root of the project and add the following:
+
+```bash
+OPENAI_API_KEY=<your_api_key>
+```
+
+Than you can run the project with:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For more guidance (like configuring database, etc) you can check [this article](https://dev.to/shiwaforce/notion-like-text-editor-with-ai-autocomplete-and-planetscale-database-in-nextjs-using-shadcnui-4236) for the repo.
+In there I will guide you through the whole project creation process step by step.
